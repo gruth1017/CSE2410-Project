@@ -69,7 +69,7 @@ public class GamePanel extends JPanel{
             if(mx>=BOARD_SIZE || my >=BOARD_SIZE || mx<0 || my <0){
                 return;
             }
-            controller.update(mx, my, this, board);
+            controller.update(mx, my);
         }
     }
 
@@ -91,8 +91,8 @@ public class GamePanel extends JPanel{
         highlightMatrix = new BufferedImage[BOARD_SIZE][BOARD_SIZE];
     }
     // <Animation Control Code>
-    public void movePiece(int startx, int starty, int endx, int endy){
-        aniPiece = board.board[starty][startx];
+    public void movePiece(ChessPiece aniPiece, int startx, int starty, int endx, int endy){
+        this.aniPiece = aniPiece;
         if(aniPiece==null){
             return;
         }
@@ -101,11 +101,9 @@ public class GamePanel extends JPanel{
         y1 = starty;
         y2 = endy;
         remainingFrames = ANIMATION_FRAMES;
-        board.board[starty][startx] = null;
     }
     //
     private void completeMove(){
-        board.board[y2][x2] = aniPiece;
         aniPiece = null;
         x1 = -1;
         x2 = -1;

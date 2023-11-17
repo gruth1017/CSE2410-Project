@@ -9,6 +9,7 @@ public class GameFrame extends JFrame{
     }
     public void run(LogicController controller, ChessBoard board){
         gamePanel = new GamePanel(controller, board);
+        controller.init(gamePanel, board);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(true);
         setLayout(new BorderLayout());

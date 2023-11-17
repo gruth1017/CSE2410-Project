@@ -1,13 +1,69 @@
-import java.util.ArrayList;
-public class Pawn extends ChessPiece{ //TODO Braden
-    public Pawn(){
-        super("assets\\pawn.png");
+import java.awt.Point;
+public class Pawn extends ChessPiece{
+    public Pawn(boolean color,String fileName){
+        super(color, fileName);
     }
-    // read super class comments.
-    @Override
-    public ArrayList<int[]> moveList(){ // TODO method stub
-        ArrayList<int[]>output = new ArrayList<>();
-        output.add(new int[]{1,2});
-        return output;
-    } 
+    @Override // PLACEHOLDER
+    public boolean isLegal(ChessPiece[][] board, int y, int x, int i, int j) {
+        // TODO Auto-generated method stub
+        if((j*j*j*j+i*i*i)%7 == 0){
+            return true;
+        }
+        return false;
+    }
+    // TODO fix
+    // public boolean isLegal (ChessPiece[][] board, int y, int x, int a, int b) {
+    //     if (color) {
+    //        if (a == x && b == y + 1 && board[b][a] == null) {
+    //           return true;
+    //        }
+    //        if (a == x && b == y + 2 && board [b][a] == null && board [b-1][a] == null && !hasMoved) {
+    //           return true;
+    //        }
+    //        if (a == x + 1 && b == y + 1 && board[b][a].color != board[y][x].color) {
+    //           return true;
+    //        }
+    //        if (a == x - 1 && b == y + 1 && board[b][a].color != board[y][x].color) {
+    //           return true;
+    //        }
+    //        if (a == x + 1 && b == y + 1 && board[y][x+1].color != board[y][x].color && board[y][x+1].passing) {
+    //           return true;
+    //        }
+    //        if (a == x - 1 && b == y + 1 && board[y][x-1].color != board[y][x].color && board[y][x-1].passing) {
+    //           return true;
+    //        }
+    //     } else {
+    //        if (!color) {
+    //           if (a == x && b == y - 1 && board[b][a] == null) {
+    //              return true;
+    //           }
+    //           if (a == x && b == y - 2 && board [b][a] == null && board [b-1][a] == null && !hasMoved) {
+    //              return true;
+    //           }
+    //           if (a == x + 1 && b == y - 1 && board[b][a].color != board[y][x].color) {
+    //              return true;
+    //           }
+    //           if (a == x - 1 && b == y - 1 && board[b][a].color != board[y][x].color) {
+    //              return true;
+    //           }
+    //           if (a == x + 1 && b == y - 1 && board[y][x+1].color != board[y][x].color && board[y][x+1].passing) {
+    //              return true;
+    //           }
+    //           if (a == x - 1 && b == y - 1 && board[y][x-1].color != board[y][x].color && board[y][x-1].passing) {
+    //              return true;
+    //           }
+    //        }
+    //     }
+    //     return false;
+    //  }
+    public void move (GamePanel IO, ChessPiece[][] board, Point a, Point b) {
+        super.move(IO, board, a,b);
+        if (b.y == 0 || b.y == 7) {
+        //    board[b.y][b.x] = new Queen(color, "assets\\queen.png");
+        }
+        if (a.y == b.y + 2) {
+           passing = true;
+        }
+        hasMoved = true;
+     }
 }
