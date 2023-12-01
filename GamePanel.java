@@ -16,7 +16,7 @@ public class GamePanel extends JPanel{
     public final int BOARD_SIZE = 8;
     public final int WINDOW_X_RESOLUTION = TILE_WIDTH*BOARD_SIZE;
     public final int WINDOW_Y_RESOLUTION = TILE_HEIGHT*BOARD_SIZE;
-    public final double ANIMATION_TIME = 2; // how many seconds animations should take
+    public final double ANIMATION_TIME = 0.5; // how many seconds animations should take
     public final String WHITE_TILE = "assets\\white_tile.png";
     public final String BLACK_TILE = "assets\\black_tile.png";
     //////////////////////////////////
