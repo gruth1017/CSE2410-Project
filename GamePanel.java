@@ -16,7 +16,7 @@ public class GamePanel extends JPanel{
     public final int BOARD_SIZE = 8;
     public final int WINDOW_X_RESOLUTION = TILE_WIDTH*BOARD_SIZE;
     public final int WINDOW_Y_RESOLUTION = TILE_HEIGHT*BOARD_SIZE;
-    public final int ANIMATION_FRAMES= 15; // how many frames should animations take
+    public final double ANIMATION_TIME = 2; // how many seconds animations should take
     public final String WHITE_TILE = "assets\\white_tile.png";
     public final String BLACK_TILE = "assets\\black_tile.png";
     //////////////////////////////////
@@ -28,16 +28,17 @@ public class GamePanel extends JPanel{
     private BufferedImage whiteTile;
     private BufferedImage blackTile;
     private BufferedImage[][] highlightMatrix;
-    private int remainingFrames = 0;
+    private int remainingFrames;
     private int x1;
     private int x2;
     private int y1;
     private int y2;
     private ChessPiece aniPiece;
+    private int animationFrames;
     //////////////////////////////////
     //            init              //
     //////////////////////////////////
-    public GamePanel(LogicController controller,ChessBoard board){
+    public GamePanel(LogicController controller, ChessBoard board, int FPS){
         highlightMatrix = new BufferedImage[BOARD_SIZE][BOARD_SIZE];
         this.board = board;
         mouse = new MouseHandler();
@@ -51,6 +52,8 @@ public class GamePanel extends JPanel{
         this.setPreferredSize(new Dimension(WINDOW_X_RESOLUTION,WINDOW_Y_RESOLUTION));
         this.addMouseListener(mouse);
         this.setFocusable(true);
+        this.animationFrames = (int)Math.round((ANIMATION_TIME * FPS));
+        remainingFrames = 0;
     }
     // Run submethod for readability. Will parse and pass input to logic controller to decide action
     public void update(){
@@ -100,7 +103,7 @@ public class GamePanel extends JPanel{
         x2 = endx;
         y1 = starty;
         y2 = endy;
-        remainingFrames = ANIMATION_FRAMES;
+        remainingFrames = animationFrames;
     }
     //
     private void completeMove(){
@@ -125,7 +128,7 @@ public class GamePanel extends JPanel{
         for(int i =0; i <highlightMatrix[0].length; i++){
             for(int j =0; j <highlightMatrix.length; j++){
                 if(highlightMatrix[j][i]!=null){
-                    g.drawImage(highlightMatrix[j][i], i*TILE_WIDTH, j*TILE_HEIGHT, null);
+                    drawSprite(g, highlightMatrix[j][i], i*TILE_WIDTH, j*TILE_HEIGHT);
                 }
         }
     }
@@ -137,7 +140,7 @@ public class GamePanel extends JPanel{
                 try{
                     ChessPiece p = board.board[j][i];
                     if(p!=null){
-                        g.drawImage(ImageIO.read(new File(p.getFileName())), i*TILE_WIDTH, j*TILE_HEIGHT, null);   
+                        drawSprite(g, ImageIO.read(new File(p.getFileName())), i*TILE_WIDTH, j*TILE_HEIGHT);   
                     }
                 }catch(IOException e){
                     e.printStackTrace();
@@ -150,9 +153,9 @@ public class GamePanel extends JPanel{
         for(int i =0;i<BOARD_SIZE;i++){
             for(int j =0;j<BOARD_SIZE;j++){
                 if((i+j)%2 ==0){
-                    g.drawImage(whiteTile, i*TILE_WIDTH, j*TILE_HEIGHT, null);
+                    drawSprite(g, whiteTile, i*TILE_WIDTH, j*TILE_HEIGHT);
                 }else{
-                    g.drawImage(blackTile, i*TILE_WIDTH, j*TILE_HEIGHT, null);
+                    drawSprite(g, blackTile, i*TILE_WIDTH, j*TILE_HEIGHT);
                 }
             }
         }
@@ -164,9 +167,9 @@ public class GamePanel extends JPanel{
         }
         try{
         BufferedImage image = ImageIO.read(new File(aniPiece.getFileName())); 
-        final int dx = LERP(x1*TILE_WIDTH,x2*TILE_WIDTH,ANIMATION_FRAMES-remainingFrames,ANIMATION_FRAMES);
-        final int dy = LERP(y1*TILE_HEIGHT,y2*TILE_HEIGHT,ANIMATION_FRAMES-remainingFrames,ANIMATION_FRAMES);
-        g.drawImage(image,dx, dy, null);
+        final int dx = LERP(x1*TILE_WIDTH,x2*TILE_WIDTH,animationFrames-remainingFrames,animationFrames);
+        final int dy = LERP(y1*TILE_HEIGHT,y2*TILE_HEIGHT,animationFrames-remainingFrames,animationFrames);
+        drawSprite(g, image,dx, dy);
         }catch(IOException e){
             e.printStackTrace();
         }
@@ -174,6 +177,9 @@ public class GamePanel extends JPanel{
     //   
     private int LERP(int start, int end, int elapsedFrames, int totalFrames){
         return (int)Math.round(start + (end-start) * ((double)elapsedFrames) /totalFrames);
+    }
+    private void drawSprite(Graphics g, BufferedImage i,int x ,int y){
+        g.drawImage(i,x, y,TILE_WIDTH,TILE_HEIGHT,null);
     }
 }
 
