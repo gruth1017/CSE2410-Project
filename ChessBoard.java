@@ -2,17 +2,17 @@ import java.awt.Point;
 import java.util.ArrayList;
 
 public class ChessBoard {
-    public final int BOARD_SIZE = 8;
-    ChessPiece[][] board;
+    public final int BOARD_SIZE = 8;  // Size of the chess board
+    ChessPiece[][] board;  // 2D array to represent the chess board
     private int PosX;
     private int PosY;
     public ChessBoard() {
-        board = new ChessPiece[BOARD_SIZE][BOARD_SIZE]; // Initialize the board
-        initializeBoard();
+        board = new ChessPiece[BOARD_SIZE][BOARD_SIZE]; 
+        initializeBoard();   // Initialize the pieces on the board
     }
 
     private void initializeBoard() {
-        // Initialize pawns
+        // Initialize pawns for white and black
         for (int i = 0; i < BOARD_SIZE; i++) {
             board[1][i] = new Pawn(true, "assets\\pawn_white.png");
             board[6][i] = new Pawn(false, "assets\\pawn_black.png");
@@ -41,7 +41,7 @@ public class ChessBoard {
         board[7][4] = new King(false, "assets\\black_king.png");
     }
 
-    //new functiom so see if space clicked on has a piece... will change later when actual pieces are there(Tariq)
+    //new function so see if space clicked on has a piece... will change later when actual pieces are there(Tariq)
     public Boolean emptyspace(int x, int y){
         boolean nopiece=false;
 
@@ -54,7 +54,7 @@ public class ChessBoard {
 
 
 
-    
+    // method to check if a player is in check
     public boolean isCheck(String player) {
         Point kingPosition = findKing(player);
 
@@ -88,7 +88,7 @@ public class ChessBoard {
 
     }
     
-       public void NewPos(ChessPiece piece,int x1, int y1, int x2, int y2){
+    public void NewPos(ChessPiece piece,int x1, int y1, int x2, int y2){
 
         board[y2][x2]=piece;
         board[y1][x1]=null;
@@ -103,7 +103,7 @@ public class ChessBoard {
     }
 
     
-    
+    // Method to check is a player is in checkmate
     public boolean isCheckmate(String player) {
         if (!isCheck(player)) {
             return false; // If not in check, not in checkmate
@@ -136,6 +136,7 @@ public class ChessBoard {
         return false;
     }
 
+    // Meethod to check if a player is in stalemate
     private boolean isInStalemate(String player) {
         // Check if the player has no legal moves but is not in check
         for (int i = 0; i < BOARD_SIZE; i++) {
@@ -155,6 +156,7 @@ public class ChessBoard {
         return true; // Player is in stalemate
     }
 
+    // Private method to find th eking's position on the board
     private Point findKing(String player) {
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
@@ -168,6 +170,8 @@ public class ChessBoard {
         return null; // King not found (should not happen in a valid chess game)
     }
 
+
+    // Private method to check if a move is valid
     private boolean isMoveValid(int startX, int startY, int endX, int endY, String player) {
         ChessPiece startPiece = board[startY][startX];
         ChessPiece endPiece = board[endY][endX];
@@ -180,7 +184,7 @@ public class ChessBoard {
 
         // Check if the destination is within the list of legal moves
         if (legalMoves.stream().anyMatch(p -> p.x == endX && p.y == endY)) {
-            // Simulate the move to check if the king is in check after the move
+            // Simulates the move to check if the king is in check after the move
             ChessPiece[][] tempBoard = simulateMove(startX, startY, endX, endY);
             if (!isCheck(player, tempBoard)) {
                 // The move is valid
@@ -191,6 +195,7 @@ public class ChessBoard {
         return false;
     }
 
+    // Private method that simulates the move on a temp board
     private ChessPiece[][] simulateMove(int startX, int startY, int endX, int endY) {
         ChessPiece[][] tempBoard = copyBoard(board);
         tempBoard[endY][endX] = tempBoard[startY][startX];
@@ -198,6 +203,7 @@ public class ChessBoard {
         return tempBoard;
     }
 
+    // Private method to check if a player is in check on a temp board
     private boolean isCheck(String player, ChessPiece[][] tempBoard) {
         Point kingPosition = findKing(player, tempBoard);
 
@@ -214,6 +220,7 @@ public class ChessBoard {
         return false;
     }
 
+    // Private method to find the king's position on a temp board
     private Point findKing(String player, ChessPiece[][] tempBoard) {
         for (int i = 0; i < BOARD_SIZE; i++) {
             for (int j = 0; j < BOARD_SIZE; j++) {
@@ -227,6 +234,7 @@ public class ChessBoard {
         return null; // King not found (should not happen in a valid chess game)
     }
 
+    // Private method to create a copy of the chess board
     private ChessPiece[][] copyBoard(ChessPiece[][] original) {
         ChessPiece[][] copy = new ChessPiece[BOARD_SIZE][BOARD_SIZE];
         for (int i = 0; i < BOARD_SIZE; i++) {
