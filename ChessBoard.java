@@ -4,7 +4,8 @@ import java.util.ArrayList;
 public class ChessBoard {
     public final int BOARD_SIZE = 8;
     ChessPiece[][] board;
-
+    private int PosX;
+    private int PosY;
     public ChessBoard() {
         board = new ChessPiece[BOARD_SIZE][BOARD_SIZE]; // Initialize the board
         initializeBoard();
@@ -40,6 +41,20 @@ public class ChessBoard {
         board[7][4] = new King(false, "assets\\black_king.png");
     }
 
+    //new functiom so see if space clicked on has a piece... will change later when actual pieces are there(Tariq)
+    public Boolean emptyspace(int x, int y){
+        boolean nopiece=false;
+
+        if (board[y][x]== null) {
+            nopiece=true;
+        }
+
+        return nopiece;
+    }
+
+
+
+    
     public boolean isCheck(String player) {
         Point kingPosition = findKing(player);
 
@@ -56,6 +71,39 @@ public class ChessBoard {
         return false;
     }
 
+
+     //new code gets the position to pick the piece up
+    public ChessPiece SetPos(int x,int y){
+    
+        PosX=x;
+        PosY=y;
+
+        //dont know why this is here... will figure out later
+        //if(piecespot[PosY][PosX]== null){
+        //board[PosY][PosX]= piecespot[PosY][PosX];}
+        
+         ChessPiece sendback= board[PosY][PosX];
+
+        return sendback;
+
+    }
+    
+       public void NewPos(ChessPiece piece,int x1, int y1, int x2, int y2){
+
+        board[y2][x2]=piece;
+        board[y1][x1]=null;
+        
+
+    }
+
+     //returns piece... i do not remeber where i used this
+    public ChessPiece GetPiece(int x, int y)
+    {   
+        return board[y][x] ;
+    }
+
+    
+    
     public boolean isCheckmate(String player) {
         if (!isCheck(player)) {
             return false; // If not in check, not in checkmate
