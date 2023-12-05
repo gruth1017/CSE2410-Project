@@ -31,5 +31,9 @@ public abstract class ChessPiece { //TODO @BRADEN
         board[b.y][b.x] = this;
         hasMoved = true;
      }
+     public String getColor() {
+      Boolean temp = color;
+      return temp.toString();
+     }
      public abstract boolean isLegal(ChessPiece[][] board, int y, int x, int i, int j);
     }
