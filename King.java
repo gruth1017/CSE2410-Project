@@ -22,6 +22,7 @@ public class King extends ChessPiece {
    }
    public void move (GamePanel IO, ChessPiece[][] board, Point a, Point b) {
       super.move(IO, board, a,b);
+      // todo add castling
       hasMoved = true;
    }
 }
