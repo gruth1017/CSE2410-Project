@@ -62,6 +62,7 @@ public class Pawn extends ChessPiece{
         super.move(IO, board, a,b);
         if (b.y == 0 || b.y == 7) {
            board[b.y][b.x] = new Queen(this.color, "assets\\queen.png");
+            return;
         }
         if (a.y == b.y + 2) {
            passing = true;
