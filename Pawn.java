@@ -8,18 +8,18 @@ public class Pawn extends ChessPiece{
             if (a == x && b == y) {
                 return false;
             }
-            if (a == x && b == y + 1 && board[b][a] == null) {
+            if (a == x && b == y - 1 && board[b][a] == null) {
                return true;
             }
-            if (a == x && b == y + 2 && board [b][a] == null && board [b-1][a] == null && !hasMoved) {
+            if (a == x && b == y - 2 && board [b][a] == null && board [b-1][a] == null && !hasMoved) {
                return true;
             }
-            if (a == x + 1 && b == y + 1 && board[b][a] != null) {
+            if (a == x + 1 && b == y - 1 && board[b][a] != null) {
                 if (board[b][a].color != board[y][x].color) {
                     return true;
                 }
             }
-            if (a == x - 1 && b == y + 1 && board[b][a] != null) {
+            if (a == x - 1 && b == y - 1 && board[b][a] != null) {
                 if (board[b][a].color != board[y][x].color) {
                     return true;
                 }
@@ -32,18 +32,18 @@ public class Pawn extends ChessPiece{
     //        }
         } else {
             if (!color) {
-                if (a == x && b == y - 1 && board[b][a] == null) {
+                if (a == x && b == y + 1 && board[b][a] == null) {
                    return true;
                 }
-               if (a == x && b == y - 2 && board [b][a] == null && board [b-1][a] == null && !hasMoved) {
+               if (a == x && b == y + 2 && board [b][a] == null && board [b-1][a] == null && !hasMoved) {
                    return true;
                }
-               if (a == x + 1 && b == y - 1 && board[b][a] != null) {
+               if (a == x + 1 && b == y + 1 && board[b][a] != null) {
                   if (board[b][a].color != board[y][x].color) {
                      return true;
                   }
                }
-                if (a == x - 1 && b == y - 1 && board[b][a] != null) {
+                if (a == x - 1 && b == y + 1 && board[b][a] != null) {
                     if (board[b][a].color != board[y][x].color) {
                         return true;
                     }
@@ -62,7 +62,7 @@ public class Pawn extends ChessPiece{
         super.move(IO, board, a,b);
         if (b.y == 0 || b.y == 7) {
            board[b.y][b.x] = new Queen(this.color, "assets\\queen.png");
-            return;
+           return;
         }
         if (a.y == b.y + 2) {
            passing = true;

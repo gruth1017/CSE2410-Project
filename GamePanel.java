@@ -1,6 +1,7 @@
 
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
@@ -22,8 +23,6 @@ public class GamePanel extends JPanel{
     //////////////////////////////////
     //       non-constants          //
     //////////////////////////////////
-    private LogicController controller; 
-    private ChessBoard board;
     private MouseHandler mouse;
     private BufferedImage whiteTile;
     private BufferedImage blackTile;
@@ -35,12 +34,13 @@ public class GamePanel extends JPanel{
     private int y2;
     private ChessPiece aniPiece;
     private int animationFrames;
+    private Game Chess;
     //////////////////////////////////
     //            init              //
     //////////////////////////////////
-    public GamePanel(LogicController controller, ChessBoard board, int FPS){
+    public GamePanel(Game Chess){
+        this.Chess = Chess;
         highlightMatrix = new BufferedImage[BOARD_SIZE][BOARD_SIZE];
-        this.board = board;
         mouse = new MouseHandler();
         try{
             whiteTile = ImageIO.read(new File(WHITE_TILE));
@@ -48,15 +48,14 @@ public class GamePanel extends JPanel{
         } catch(IOException e){
             e.printStackTrace();
         }
-        this.controller = controller;
         this.setPreferredSize(new Dimension(WINDOW_X_RESOLUTION,WINDOW_Y_RESOLUTION));
         this.addMouseListener(mouse);
         this.setFocusable(true);
-        this.animationFrames = (int)Math.round((ANIMATION_TIME * FPS));
+        this.animationFrames = (int)Math.round((ANIMATION_TIME * Chess.FPS));
         remainingFrames = 0;
     }
     // Run submethod for readability. Will parse and pass input to logic controller to decide action
-    public void update(){
+    public Point update(){
         if(remainingFrames==1){ // if last frame of animation
             completeMove();
         }
@@ -65,15 +64,16 @@ public class GamePanel extends JPanel{
         } else if(mouse.hasInput()){ // update controller if no active animations and user has given input
             MouseEvent e = mouse.getClick();
             if(e==null){
-                return;
+                return null;
             }
             final int mx = e.getX()/TILE_WIDTH;
             final int my = e.getY()/TILE_HEIGHT;
             if(mx>=BOARD_SIZE || my >=BOARD_SIZE || mx<0 || my <0){
-                return;
+                return null;
             }
-            controller.update(mx, my);
+            return new Point(mx,my);
         }
+        return null;
     }
 
     // <Highlight Control Code>
@@ -135,10 +135,10 @@ public class GamePanel extends JPanel{
     }
     //
     private void paintPieces(Graphics g){ 
-        for(int j = 0; j < board.board[0].length;j++){
-            for(int i = 0; i < board.board.length;i++){
+        for(int i = 0; i < Chess.board.size();i++){
+            for(int j = 0; j < Chess.board.size();j++){
                 try{
-                    ChessPiece p = board.board[j][i];
+                    ChessPiece p = Chess.board.get(i,j);
                     if(p!=null){
                         drawSprite(g, ImageIO.read(new File(p.getFileName())), i*TILE_WIDTH, j*TILE_HEIGHT);   
                     }
