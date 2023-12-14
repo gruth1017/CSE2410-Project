@@ -1,81 +1,105 @@
 import java.awt.Point;
 import java.util.ArrayList;
-
-
-public class LogicController { // TODO @TARIQ
-    // any time the user clicks on a tile, this function will get called with the x and y coordinate clicked,
-    // as well as the necesary objects to call in order to perform function.
-    // the only visual methods you should need are IO.highlight, IO.resetHighlight(), and this.movePiece()
-    public GamePanel IO;
-    public boolean playerturn= false;
-    public ChessBoard board;
-    public boolean firstinput= false, secondinput= false;
-    public int x1,y1,x2,y2;
-    ChessPiece sendoff;
-     ArrayList<Point> validMoves;
-    public void init(GamePanel IO, ChessBoard board){
-        this.IO = IO;
-        this.board = board;
-    } 
-    public void update(int x, int y){
-        if(board.emptyspace(x, y )&& firstinput==false){return;}
-        else
-        {test1(x,y);} 
+public class LogicController { 
+    private Game Chess;
+    private PieceColor playerTurn = PieceColor.WHITE;
+    private ChessPiece prevPiece;
+    Point lastMoveStart;
+    Point lastMoveEnd;
+    public void init(Game Chess){
+        this.Chess = Chess;
+        Chess.board.initializeBoard(Chess);
     }
-    private void movePiece(int x1, int y1,int x2,int y2){ // readability method
-        if (sendoff.color==playerturn) {
-            playerturn=!playerturn;
-            sendoff.move(IO,board,new Point(x1,y1),new Point(x2,y2));
+    public void update(Point click){
+        if(prevPiece==null){ // if user is selecting piece to move
+            selectPiece(click);
+        }else{ // if user is selecting where to move selected piece to
+            tryMove(click);
         }
-        else{return;}
-        
-        
+        if(Chess.board.isCheckMate(PieceColor.BLACK)){
+            Chess.IO.drawScreen("assets\\white_wins.png");
+            Chess.gameOver = true;
+        }
+        if(Chess.board.isCheckMate(PieceColor.WHITE)){
+            Chess.IO.drawScreen("assets\\black_wins.png");
+            Chess.gameOver = true;
+        }
+        if(Chess.board.isStaleMate(PieceColor.BLACK) || Chess.board.isStaleMate(PieceColor.WHITE)){
+            Chess.IO.drawScreen("assets\\stalemate.png");
+            Chess.gameOver = true;
+        }
     }
-    private void test1(int x,int y){ 
-        /////////////////////////// 
-        //     Basic Test 1:     //
-        ///////////////////////////
-        //every time the user clicks on a square:
-        
-        System.out.printf("x: %d y: %d %n",x,y); // 1. print what square the user clicked on
-        IO.resetHighlight(); // 2. unhighlight all squares 
-        //gets the piece you want to move and locks it in as the first position
-        if (firstinput== false) {
-            x1=x;
-            y1=y;
-            firstinput = true; 
-            sendoff=board.SetPos(x1,y1);
-            validMoves = sendoff.getLegalMoves(sendoff, y1, x1); // 4. get the list of valid moves for the piece in the top left (debugPiece returns a random list)
-        for(Point p : validMoves){ // 5. highlight all squares in the retrieved list 
-            IO.highlight(p.x, p.y, "assets\\basichighlight.png");
-        }  
-         
-        }
-        //gets where you want to move the piece to and locks it in as the second position
-        else if(secondinput==false){
-            int i =0;
-            for (Point iterable_element : validMoves) {
-               
-                if (validMoves.get(i).getX()==x && validMoves.get(i).getY()==y) {
-                x2=x;
-                y2=y;
-                secondinput = true;
-                }    
-                i++;
-                if(i<validMoves.size()){firstinput=false;}
 
+    private void movePiece(ChessPiece piece, Point endPoint){ // ORDER MATTERS
+        Chess.IO.movePiece(piece, piece.posx, piece.posy, endPoint.x, endPoint.y);
+        piece.move(endPoint);
+    }
+    private void tryMove(Point click){ 
+        ArrayList<Point> legalMoves = Chess.board.getNonSuicidalMoves(new Point(prevPiece.posx,prevPiece.posy));
+        for(Point point : legalMoves){ 
+            if(point.equals(click)){ // if user clicked on a legal move
+                // code to execute a move
+                lastMoveEnd = click;
+                lastMoveStart = new Point(prevPiece.posx,prevPiece.posy);
+                movePiece(prevPiece, click);
+                Chess.board.moveCount++;
+                unHighlight();
+                prevPiece = null;
+                if(playerTurn==PieceColor.BLACK){
+                    playerTurn= PieceColor.WHITE;
+                }else{
+                    playerTurn = PieceColor.BLACK;
+                }
+                return;
             }
         }
-        // moves the piece when both positions are gained
-        if (secondinput==true) {
-            
-        
-        
-        
+        // select different piece if user clicks on their piece
+        ChessPiece currentPiece = Chess.board.get(click);
+        if(currentPiece!=null){
+            if(currentPiece!=prevPiece && currentPiece.color.equals(playerTurn)){;
+                highlightClick(click);
+                prevPiece = currentPiece;
+                return;
+            }
+        }
+        prevPiece = null;
+        unHighlight();
+    }
+    private void selectPiece(Point click){
+        ChessPiece currentPiece = Chess.board.get(click);
+        if(currentPiece==null){
+            return;
+        }
+        if(!currentPiece.color.equals(playerTurn)){
+            return;
+        }
+        highlightClick(click);
+        prevPiece = currentPiece;
+    }
 
-        movePiece(x1,y1,x2,y2); // 6. move the piece in the top left to the square the user clicked on.
-        firstinput=false;
-        secondinput=false;
+    private void highlightClick(Point p){
+        unHighlight();
+        ArrayList<Point> legalMoves = Chess.board.getNonSuicidalMoves(p);
+        for(Point point: legalMoves){
+            Chess.IO.highlight(point.x,point.y, "assets\\move_highlight.png");
+        }
+        Chess.IO.highlight(p.x, p.y, "assets\\yellow_highlight.png");
+    }
+    private void unHighlight(){
+        Chess.IO.resetHighlight();
+        if(Chess.board.isCheck(PieceColor.BLACK)){
+            Point blackKingPos = Chess.board.findKing(PieceColor.BLACK);
+            Chess.IO.highlight(blackKingPos.x, blackKingPos.y, "assets\\red_highlight.png");
+        }
+        if(Chess.board.isCheck(PieceColor.WHITE)){
+            Point whiteKingPos = Chess.board.findKing(PieceColor.WHITE);
+            Chess.IO.highlight(whiteKingPos.x, whiteKingPos.y, "assets\\red_highlight.png");
+        }
+        if(lastMoveStart!=null){
+            Chess.IO.highlight(lastMoveStart.x, lastMoveStart.y, "assets\\green_highlight.png");
+        }
+        if(lastMoveEnd!=null){
+            Chess.IO.highlight(lastMoveEnd.x, lastMoveEnd.y, "assets\\green_highlight.png");
         }
     }
 }

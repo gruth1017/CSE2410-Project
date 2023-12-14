@@ -1,245 +1,157 @@
 import java.awt.Point;
 import java.util.ArrayList;
+public class ChessBoard{
+    final private int BOARD_SIZE = 8;
+    public int moveCount = 0;
+    private ChessPiece[][] board;
+    PieceColor WHITE = PieceColor.WHITE;
+    PieceColor BLACK= PieceColor.BLACK;
+    public ChessBoard copyBoard(){
+        ChessBoard newBoard = new ChessBoard();
+        newBoard.moveCount = this.moveCount;
+        for(int i =0; i<BOARD_SIZE;i++){
+            for(int j =0; j< BOARD_SIZE;j++){
+                ChessPiece thisPiece = get(i,j);
+                if(thisPiece!=null){
+                    newBoard.set(new Point(i,j), thisPiece.deepCopy(newBoard));
+                }
+            }
+        }
+        return newBoard;
+    }
+    public ChessPiece get(Point p){
+        return board[p.y][p.x];
 
-public class ChessBoard {
-    public final int BOARD_SIZE = 8;  // Size of the chess board
-    ChessPiece[][] board;  // 2D array to represent the chess board
-    private int PosX;
-    private int PosY;
-    public ChessBoard() {
-        board = new ChessPiece[BOARD_SIZE][BOARD_SIZE]; 
-        initializeBoard();   // Initialize the pieces on the board
+    }
+    public ChessPiece get(int x, int y){
+        return board[y][x];
+    }
+    public void set(Point p, ChessPiece piece){
+        board[p.y][p.x] = piece;
+    }
+    public void set(int x, int y, ChessPiece piece){
+        board[y][x] = piece;
+    }
+    public int size(){
+        return BOARD_SIZE;
+    }
+    public ChessBoard(){
+        board = new ChessPiece[BOARD_SIZE][BOARD_SIZE];
     }
 
-    private void initializeBoard() {
+    public ArrayList<Point> getNonSuicidalMoves(Point p){
+        ChessPiece piece = get(p);
+        ArrayList<Point> output = new ArrayList<>();
+        if(piece==null){
+            return output;
+        }
+        ArrayList<Point> legalMoves = piece.getLegalMoves();
+        for(Point move : legalMoves){
+            if(!futureCheck(p, move, piece.color)){
+                output.add(move);
+            }
+        }
+        return output;
+    }
+    public boolean isCheckMate(PieceColor player){
+        return(isCheck(player) && isMate(player));
+    }
+    public boolean isStaleMate(PieceColor player){
+        return(!isCheck(player) && isMate(player));
+    }
+    public boolean isMate(PieceColor player){
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++){
+                ChessPiece piece = get(i,j);
+                if(piece==null){
+                    continue;
+                }
+                if(piece.color!=player){
+                    continue;
+                }
+                if(!getNonSuicidalMoves(new Point(i,j)).isEmpty()){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public boolean futureCheck(Point start, Point end, PieceColor player){ // check if move puts king in check
+        ChessBoard simBoard = this.copyBoard();
+        ChessPiece simPiece = simBoard.get(start);
+        simBoard.set(simPiece.posx,simPiece.posy,null);
+        simPiece.move(end);
+        simBoard.set(end,simPiece);
+        return simBoard.isCheck(player);
+    }
+    public boolean isCheck(PieceColor player){
+        return !isTileSafe(findKing(player), player);
+    }
+    public boolean isTileSafe(Point p, PieceColor player){
+        for(int i = 0; i < BOARD_SIZE; i++){
+            for(int j = 0; j < BOARD_SIZE; j++){
+                ChessPiece piece = get(i,j);
+                if(piece==null){
+                    continue;
+                }
+                if(piece.color.equals(player)){
+                    continue;
+                }
+                if(piece instanceof King){ // if neither king has moved they are absolutely not a risk to each other. 
+                    //holy the amount of stack overflows i had to deal with to find the source of this bug
+                    if(!get(findKing(WHITE)).hasMoved && !get(findKing(BLACK)).hasMoved){
+                        continue;
+                    }
+                }
+                ArrayList<Point> pieceMoves = piece.getLegalMoves();
+                for(Point point : pieceMoves){
+                    if(point.x == p.x && point.y==p.y){
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public Point findKing(PieceColor player) {
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                ChessPiece piece = get(i,j);
+                if (piece instanceof King && piece.color.equals(player)) {
+                    return new Point(i, j);
+                }
+            }
+        }
+        return null; // King not found (should not happen in a valid chess game)
+    }
+    public void initializeBoard(Game Chess) {
         // Initialize pawns for white and black
         for (int i = 0; i < BOARD_SIZE; i++) {
-            board[1][i] = new Pawn(true, "assets\\pawn_white.png");
-            board[6][i] = new Pawn(false, "assets\\pawn_black.png");
+            board[6][i] = new Pawn(this, WHITE, "assets\\white_pawn.png", new Point(i,6));
+            board[1][i] = new Pawn(this, BLACK, "assets\\black_pawn.png", new Point(i,1));
         }
-
         // Initialize other pieces
-        board[0][0] = new Rook(true, "assets\\white_rook.png");
-        board[0][7] = new Rook(true, "assets\\white_rook.png");
-        board[7][0] = new Rook(false, "assets\\black_rook.png");
-        board[7][7] = new Rook(false, "assets\\black_rook.png");
+        board[7][7] = new Rook(this,WHITE, "assets\\white_rook.png", new Point(7,7));
+        board[7][0] = new Rook(this,WHITE, "assets\\white_rook.png", new Point(0,7));
+        board[0][7] = new Rook(this,BLACK, "assets\\black_rook.png", new Point(7,0));
+        board[0][0] = new Rook(this,BLACK, "assets\\black_rook.png", new Point(0,0));
 
-        board[0][1] = new Knight(true, "assets\\white_knight.png");
-        board[0][6] = new Knight(true, "assets\\white_knight.png");
-        board[7][1] = new Knight(false, "assets\\black_knight.png");
-        board[7][6] = new Knight(false, "assets\\black_knight.png");
+        board[7][6] = new Knight(this,WHITE, "assets\\white_knight.png", new Point(6,7));
+        board[7][1] = new Knight(this,WHITE, "assets\\white_knight.png", new Point(1,7));
+        board[0][6] = new Knight(this,BLACK, "assets\\black_knight.png", new Point(6,0));
+        board[0][1] = new Knight(this,BLACK, "assets\\black_knight.png", new Point(1,0));
 
-        board[0][2] = new Bishop(true, "assets\\white_bishop.png");
-        board[0][5] = new Bishop(true, "assets\\white_bishop.png");
-        board[7][2] = new Bishop(false, "assets\\black_bishop.png");
-        board[7][5] = new Bishop(false, "assets\\black_bishop.png");
+        board[7][5] = new Bishop(this,WHITE, "assets\\white_bishop.png", new Point(5,7));
+        board[7][2] = new Bishop(this,WHITE, "assets\\white_bishop.png", new Point(2,7));
+        board[0][5] = new Bishop(this,BLACK, "assets\\black_bishop.png", new Point(5,0));
+        board[0][2] = new Bishop(this,BLACK, "assets\\black_bishop.png", new Point(2,0));
 
-        board[0][3] = new Queen(true, "assets\\white_queen.png");
-        board[7][3] = new Queen(false, "assets\\black_queen.png");
+        board[7][3] = new Queen(this,WHITE, "assets\\white_queen.png", new Point(3,7));
+        board[0][3] = new Queen(this,BLACK, "assets\\black_queen.png", new Point(3,0));
 
-        board[0][4] = new King(true, "assets\\white_king.png");
-        board[7][4] = new King(false, "assets\\black_king.png");
-    }
-
-    //new function so see if space clicked on has a piece... will change later when actual pieces are there(Tariq)
-    public Boolean emptyspace(int x, int y){
-        boolean nopiece=false;
-
-        if (board[y][x]== null) {
-            nopiece=true;
-        }
-
-        return nopiece;
-    }
-
-
-
-    // method to check if a player is in check
-    public boolean isCheck(String player) {
-        Point kingPosition = findKing(player);
-
-        // Check if any opponent's piece can attack the king
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                ChessPiece piece = board[i][j];
-                if (piece != null && !piece.getColor().equals(player) && piece.isLegal(board, i, j, kingPosition.x, kingPosition.y)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-
-     //new code gets the position to pick the piece up
-    public ChessPiece SetPos(int x,int y){
-    
-        PosX=x;
-        PosY=y;
-
-        //dont know why this is here... will figure out later
-        //if(piecespot[PosY][PosX]== null){
-        //board[PosY][PosX]= piecespot[PosY][PosX];}
-        
-         ChessPiece sendback= board[PosY][PosX];
-
-        return sendback;
-
-    }
-    
-    public void NewPos(ChessPiece piece,int x1, int y1, int x2, int y2){
-
-        board[y2][x2]=piece;
-        board[y1][x1]=null;
-        
-
-    }
-
-     //returns piece... i do not remeber where i used this
-    public ChessPiece GetPiece(int x, int y)
-    {   
-        return board[y][x] ;
-    }
-
-    
-    // Method to check is a player is in checkmate
-    public boolean isCheckmate(String player) {
-        if (!isCheck(player)) {
-            return false; // If not in check, not in checkmate
-        }
-
-        // Check if the player has any legal moves
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                ChessPiece piece = board[i][j];
-                if (piece != null && piece.getColor().equals(player)) {
-                    ArrayList<Point> legalMoves = piece.getLegalMoves(board, i, j);
-                    for (Point move : legalMoves) {
-                        if (isMoveValid(i, j, move.x, move.y, player)) {
-                            return false; // Player has at least one legal move
-                        }
-                    }
-                }
-            }
-        }
-
-        return true; // Player is in checkmate
-    }
-
-    public boolean isStalemate(String player) {
-        if (isInStalemate(player)) {
-            // Additional conditions for stalemate (if needed)
-            return true;
-        }
-
-        return false;
-    }
-
-    // Meethod to check if a player is in stalemate
-    private boolean isInStalemate(String player) {
-        // Check if the player has no legal moves but is not in check
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                ChessPiece piece = board[i][j];
-                if (piece != null && piece.getColor().equals(player)) {
-                    ArrayList<Point> legalMoves = piece.getLegalMoves(board, i, j);
-                    for (Point move : legalMoves) {
-                        if (isMoveValid(i, j, move.x, move.y, player)) {
-                            return false; // Player has at least one legal move
-                        }
-                    }
-                }
-            }
-        }
-
-        return true; // Player is in stalemate
-    }
-
-    // Private method to find th eking's position on the board
-    private Point findKing(String player) {
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                ChessPiece piece = board[i][j];
-                if (piece instanceof King && piece.getColor().equals(player)) {
-                    return new Point(j, i);
-                }
-            }
-        }
-
-        return null; // King not found (should not happen in a valid chess game)
-    }
-
-
-    // Private method to check if a move is valid
-    private boolean isMoveValid(int startX, int startY, int endX, int endY, String player) {
-        ChessPiece startPiece = board[startY][startX];
-        ChessPiece endPiece = board[endY][endX];
-
-        if (startPiece == null || !startPiece.getColor().equals(player)) {
-            return false; // Trying to move an empty square or opponent's piece
-        }
-
-        ArrayList<Point> legalMoves = startPiece.getLegalMoves(board, startY, startX);
-
-        // Check if the destination is within the list of legal moves
-        if (legalMoves.stream().anyMatch(p -> p.x == endX && p.y == endY)) {
-            // Simulates the move to check if the king is in check after the move
-            ChessPiece[][] tempBoard = simulateMove(startX, startY, endX, endY);
-            if (!isCheck(player, tempBoard)) {
-                // The move is valid
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    // Private method that simulates the move on a temp board
-    private ChessPiece[][] simulateMove(int startX, int startY, int endX, int endY) {
-        ChessPiece[][] tempBoard = copyBoard(board);
-        tempBoard[endY][endX] = tempBoard[startY][startX];
-        tempBoard[startY][startX] = null;
-        return tempBoard;
-    }
-
-    // Private method to check if a player is in check on a temp board
-    private boolean isCheck(String player, ChessPiece[][] tempBoard) {
-        Point kingPosition = findKing(player, tempBoard);
-
-        // Check if any opponent's piece can attack the king
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                ChessPiece piece = tempBoard[i][j];
-                if (piece != null && !piece.getColor().equals(player) && piece.isLegal(tempBoard, i, j, kingPosition.x, kingPosition.y)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    // Private method to find the king's position on a temp board
-    private Point findKing(String player, ChessPiece[][] tempBoard) {
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            for (int j = 0; j < BOARD_SIZE; j++) {
-                ChessPiece piece = tempBoard[i][j];
-                if (piece instanceof King && piece.getColor().equals(player)) {
-                    return new Point(j, i);
-                }
-            }
-        }
-
-        return null; // King not found (should not happen in a valid chess game)
-    }
-
-    // Private method to create a copy of the chess board
-    private ChessPiece[][] copyBoard(ChessPiece[][] original) {
-        ChessPiece[][] copy = new ChessPiece[BOARD_SIZE][BOARD_SIZE];
-        for (int i = 0; i < BOARD_SIZE; i++) {
-            System.arraycopy(original[i], 0, copy[i], 0, BOARD_SIZE);
-        }
-        return copy;
+        board[7][4] = new King(this,WHITE, "assets\\white_king.png", new Point(4,7));
+        board[0][4] = new King(this,BLACK, "assets\\black_king.png", new Point(4,0));
     }
 }

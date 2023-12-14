@@ -1,39 +1,77 @@
 import java.awt.Point;
 import java.util.ArrayList;
-public abstract class ChessPiece { //TODO @BRADEN
-    protected String fileName; 
+public abstract class ChessPiece{
+    // all attributes must be final or primitive
+    final protected String fileName; 
+    final protected PieceColor color;
+    final protected ChessBoard board;
     protected boolean hasMoved = false;
-    protected boolean color;
-    protected boolean passing = false;
+    protected int posx;
+    protected int posy;
    //  protected String type; Dont need; use instanceOf()
-    public ChessPiece(boolean color, String fileName){
+    public ChessPiece(ChessBoard board, PieceColor color, String fileName, Point position){
         this.fileName = fileName;
         this.color = color;
+        this.board = board;
+        this.posx = position.x;
+        this.posy = position.y;
     }
+    public abstract ChessPiece deepCopy(ChessBoard board);
     public String getFileName() {
         return fileName;
     }
-    protected ArrayList<Point> getLegalMoves (ChessPiece[][] board, int y, int x) {
-        ArrayList<Point> output = new ArrayList<Point>();
-        for (int i = 0; i < 8; i++) {
-           for (int j = 0; j < 8; j++) {
-              boolean legal = isLegal(board, y, x, i, j);
-              if (legal) {
-                 output.add(new Point(i,j));
-              }
-           }
-        }
-        return output;
-     }
-    public void move (GamePanel IO, ChessPiece[][] board, Point a, Point b) {
-        board[a.y][a.x] = null;
-        IO.movePiece(this, a.x, a.y, b.x, b.y);
-        board[b.y][b.x] = this;
+    public abstract ArrayList<Point> getLegalMoves ();
+    public void move (Point endPoint) {
+
+        board.set(this.posx,this.posy,null);
+        posx= endPoint.x;
+        posy=endPoint.y;
         hasMoved = true;
+        board.set(endPoint,this);
      }
-     public String getColor() {
-      Boolean temp = color;
-      return temp.toString();
-     }
-     public abstract boolean isLegal(ChessPiece[][] board, int y, int x, int i, int j);
+    
+    // Generate all moves in a piece's path
+    protected ArrayList<Point> vectorPath(ArrayList<Point> output, Point start, Point direction){
+        while(true){
+            start = new Point(start.x+direction.x,start.y+direction.y);
+            if(outOfBounds(start)){ // if hit wall return current list
+                return output;
+            }
+            ChessPiece newPiece = board.get(start);
+            if(newPiece==null){ // if no occupying piece, is valid move keep traveling along vector in next loop
+                    output.add(start);
+                    continue;
+            }
+            // if is occupying piece, piece can not capture if own color, can capture but cant go past if different color
+            if(newPiece.color.equals(this.color)){
+                return output; 
+            }else{
+                output.add(start);
+                return output;  
+            }
+            }
+        }
+    protected boolean outOfBounds(Point p){
+        if(p.x<0 || p.y<0){
+            return true;
+        }
+        if(p.x>7 || p.y>7){
+            return true;
+        }
+        return false;
+    }
+    protected void addIfValid(ArrayList<Point> output,Point p){
+        if(outOfBounds(p)){
+            return;
+        }
+        ChessPiece newPiece = board.get(p);
+        if(newPiece==null){
+            output.add(p);
+            return;
+        }
+        if(newPiece.color.equals(this.color)){
+            return;
+        }
+        output.add(p);
+    }
     }
